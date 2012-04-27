@@ -1,5 +1,5 @@
 -module(cowboy_session).
--export([on_request/1]).
+-export([on_request/1, from_req/1]).
 -include_lib("cowboy/include/http.hrl").
 -compile({parse_transform, seqbind}).
 
@@ -26,3 +26,6 @@ on_request(Req@)  ->
 	end,
     {ok, Req@} = cowboy_http_req:set_resp_cookie(CookieName, FinalSession, Options, Req@),
     Req@#http_req{ meta = [{cowboy_session, Pid}|Req@#http_req.meta]}.
+
+from_req(Req) ->
+    cowboy_http_req:meta(cowboy_session, Req).
