@@ -1,0 +1,16 @@
+{application, example,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  cowboy,
+                  gproc,
+                  esupervisor
+                 ]},
+  {included_applications, [cowboy_session]},
+  {mod, { example_app, []}},
+  {env, []}
+ ]}.
