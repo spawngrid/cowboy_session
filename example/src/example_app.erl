@@ -23,7 +23,7 @@ start_cowboy() ->
                 {'_', [{'_', example_http_handler, []}]}
                ],
     %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
-    cowboy:start_listener(tendita_http_listener, 100,
+    cowboy:start_listener(example_http_listener, 100,
                           cowboy_tcp_transport, [{port, 8888}],
                           cowboy_http_protocol, [{dispatch, Dispatch},
                                                  {onrequest, fun cowboy_session:on_request/1}
