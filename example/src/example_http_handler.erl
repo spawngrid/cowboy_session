@@ -5,7 +5,7 @@ init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
 handle(Req, State) ->
-    {Session, _} = cowboy_http_req:meta(cowboy_session, Req),
+    {Session, _} = cowboy_session:from_req(Req),
     case Session of
     	undefined ->
 		    {ok, Req2} = cowboy_http_req:reply(200, [], <<"No session">>, Req);
