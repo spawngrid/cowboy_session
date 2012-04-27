@@ -11,6 +11,7 @@
 
 -record(state, {
           handler,
+	  handler_state,
           session
          }).
 
@@ -53,8 +54,10 @@ start_link(Handler, Session) ->
 %%--------------------------------------------------------------------
 init([Handler, Session]) ->
     gproc:add_local_name({cowboy_session, Session}),
+    HandlerState = Handler:init(Session),
     {ok, #state{
        session = Session,
+       handler_state = HandlerState,
        handler = Handler
       }}.
 
@@ -74,9 +77,9 @@ init([Handler, Session]) ->
 %%--------------------------------------------------------------------
 handle_call(session_id, _From, #state{ session = Session } = State) ->
     {reply, Session, State};
-handle_call({command, Command}, _From, #state{ handler = Handler, session = Session } = State) ->
-    Reply = Handler:handle(Command, Session),
-    {reply, Reply, State}.
+handle_call({command, Command}, _From, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
+    {Reply, HandlerState1} = Handler:handle(Command, Session, HandlerState),
+    {reply, Reply, State#state{ handler_state = HandlerState1 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -88,8 +91,8 @@ handle_call({command, Command}, _From, #state{ handler = Handler, session = Sess
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(stop, #state{ handler = Handler, session = Session } = State) ->
-    Handler:stop(Session),
+handle_cast(stop, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
+    Handler:stop(Session, HandlerState),
     {stop, normal, State}.
 
 %%--------------------------------------------------------------------
