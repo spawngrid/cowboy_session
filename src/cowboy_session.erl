@@ -6,7 +6,6 @@
 on_request(Req@)  ->
 	[{{cowboy_session_server_sup, Handler}, _, _, _}] = supervisor:which_children(cowboy_session_sup),
 	CookieName = Handler:cookie_name(),
-	Options = Handler:cookie_options(),
     Session = case cowboy_http_req:cookie(CookieName, Req@) of
                   {undefined, Req@} -> undefined;
                   {B, Req@} when is_binary(B) -> B
@@ -24,6 +23,8 @@ on_request(Req@)  ->
 		Pid ->
 		    FinalSession = Session
 	end,
+    HandlerState = cowboy_session_server:handler_state(Pid),
+    Options = Handler:cookie_options(HandlerState),
     {ok, Req@} = cowboy_http_req:set_resp_cookie(CookieName, FinalSession, Options, Req@),
     Req@#http_req{ meta = [{cowboy_session, Pid}|Req@#http_req.meta]}.
 

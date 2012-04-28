@@ -1,10 +1,10 @@
 -module(cowboy_session_default_handler).
--export([cookie_name/0, cookie_options/0, generate/0, stop/2, validate/1, handle/3, init/1]).
+-export([cookie_name/0, cookie_options/1, generate/0, stop/2, validate/1, handle/3, init/1]).
 
 cookie_name() ->
    <<"_session">>.
 
-cookie_options() ->
+cookie_options(_HandlerState) ->
    [{path, <<"/">>}].
 
 generate() ->

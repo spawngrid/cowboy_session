@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/2, command/2, session_id/1, stop/1]).
+-export([start_link/2, command/2, handler_state/1, session_id/1, stop/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -21,6 +21,9 @@
 
 command(Server, Command) ->
     gen_server:call(Server, {command, Command}).
+
+handler_state(Server) ->
+    gen_server:call(Server, handler_state).
 
 session_id(Server) ->
     gen_server:call(Server, session_id).
@@ -77,6 +80,8 @@ init([Handler, Session]) ->
 %%--------------------------------------------------------------------
 handle_call(session_id, _From, #state{ session = Session } = State) ->
     {reply, Session, State};
+handle_call({command, Command}, _From, #state{ handler_state = HandlerState } = State) ->
+    {reply, HandlerState, State};
 handle_call({command, Command}, _From, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
     {Reply, HandlerState1} = Handler:handle(Command, Session, HandlerState),
     {reply, Reply, State#state{ handler_state = HandlerState1 }}.
