@@ -1,10 +1,16 @@
 -module(cowboy_session).
--export([on_request/1, from_req/1]).
+-export([on_request/1, on_request/2, from_req/1]).
 -include_lib("cowboy/include/http.hrl").
 -compile({parse_transform, seqbind}).
 
-on_request(Req@)  ->
+%% WARNING: this method is convenient but will likely perform
+%% much worse because of the constant need to call the supervisor
+%% (effectively, a bottleneck)
+on_request(Req)  ->
 	[{{cowboy_session_server_sup, Handler}, _, _, _}] = supervisor:which_children(cowboy_session_sup),
+    on_request(Req, Handler).
+
+on_request(Req@, Handler) ->
 	CookieName = Handler:cookie_name(),
     Session = case cowboy_http_req:cookie(CookieName, Req@) of
                   {undefined, Req@} -> undefined;
