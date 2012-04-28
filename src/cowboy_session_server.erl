@@ -3,7 +3,8 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/2, command/2, handler_state/1, session_id/1, stop/1]).
+-export([start_link/2, command/2, handler_state/1, session_id/1, 
+         touch/1, stop/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -27,6 +28,9 @@ handler_state(Server) ->
 
 session_id(Server) ->
     gen_server:call(Server, session_id).
+
+touch(Server) ->
+	  gen_server:cast(Server, touch).
 
 stop(Server) ->
 	  gen_server:cast(Server, stop).
@@ -96,6 +100,10 @@ handle_call({command, Command}, _From, #state{ handler = Handler, handler_state 
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_cast(touch, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
+    HandlerState1 = Handler:touch(Session, HandlerState),
+    {noreply, State#state{ handler_state = HandlerState1 }};
+
 handle_cast(stop, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
     Handler:stop(Session, HandlerState),
     {stop, normal, State}.

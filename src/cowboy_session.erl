@@ -23,6 +23,7 @@ on_request(Req@)  ->
 		Pid ->
 		    FinalSession = Session
 	end,
+    cowboy_session_server:touch(Pid),
     HandlerState = cowboy_session_server:handler_state(Pid),
     Options = Handler:cookie_options(HandlerState),
     {ok, Req@} = cowboy_http_req:set_resp_cookie(CookieName, FinalSession, Options, Req@),
@@ -30,3 +31,4 @@ on_request(Req@)  ->
 
 from_req(Req) ->
     cowboy_http_req:meta(cowboy_session, Req).
+
