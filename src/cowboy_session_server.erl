@@ -80,7 +80,7 @@ init([Handler, Session]) ->
 %%--------------------------------------------------------------------
 handle_call(session_id, _From, #state{ session = Session } = State) ->
     {reply, Session, State};
-handle_call({command, Command}, _From, #state{ handler_state = HandlerState } = State) ->
+handle_call(handler_state, _From, #state{ handler_state = HandlerState } = State) ->
     {reply, HandlerState, State};
 handle_call({command, Command}, _From, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
     {Reply, HandlerState1} = Handler:handle(Command, Session, HandlerState),
