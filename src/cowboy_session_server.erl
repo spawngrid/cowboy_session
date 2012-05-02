@@ -3,8 +3,9 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/2, command/2, handler_state/1, session_id/1, 
-         touch/1, stop/1]).
+-export([start_link/3, command/2, handler_state/1, 
+         session_id/1, session_id/2, touch/1,
+         stop/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -29,6 +30,9 @@ handler_state(Server) ->
 session_id(Server) ->
     gen_server:call(Server, session_id).
 
+session_id(Server, Session) ->
+    gen_server:cast(Server, {session_id, Session}).
+
 touch(Server) ->
 	  gen_server:cast(Server, touch).
 
@@ -41,8 +45,8 @@ stop(Server) ->
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(Handler, Session) ->
-    gen_server:start_link(?MODULE, [Handler, Session], []).
+start_link(Handler, Session, SessionName) ->
+    gen_server:start_link(?MODULE, [Handler, Session, SessionName], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -59,9 +63,9 @@ start_link(Handler, Session) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([Handler, Session]) ->
-    gproc:add_local_name({cowboy_session, Session}),
-    HandlerState = Handler:init(Session),
+init([Handler, Session, SessionName]) ->
+    gproc:add_local_name({cowboy_session, SessionName}),
+    HandlerState = Handler:init(Session, SessionName),
     {ok, #state{
        session = Session,
        handler_state = HandlerState,
@@ -100,6 +104,8 @@ handle_call({command, Command}, _From, #state{ handler = Handler, handler_state 
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_cast({session_id, NewSession}, #state{} = State) ->
+    {noreply, State#state{ session = NewSession }};
 handle_cast(touch, #state{ handler = Handler, handler_state = HandlerState, session = Session } = State) ->
     HandlerState1 = Handler:touch(Session, HandlerState),
     {noreply, State#state{ handler_state = HandlerState1 }};
