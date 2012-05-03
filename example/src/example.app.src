@@ -8,7 +8,8 @@
                   stdlib,
                   cowboy,
                   gproc,
-                  esupervisor
+                  esupervisor,
+                  ossp_uuid
                  ]},
   {included_applications, [cowboy_session]},
   {mod, { example_app, []}},
