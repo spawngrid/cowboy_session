@@ -10,8 +10,7 @@
 %%          This code's author is clueless about cryptography and security
 %%
 
-generate(Data, SecData, SessionKey, Key, IVec) ->
-    CKey = crypto:md5_mac(Data, Key), 
+generate(Data, SecData, SessionKey, CKey, IVec) ->
     EncData = crypto:aes_cbc_128_encrypt(CKey, IVec, pad(16,<<(size(Data)):1/big-signed-integer-unit:16,
                                                               Data/binary, 
                                                               (size(SecData)):1/big-signed-integer-unit:16,
@@ -24,7 +23,7 @@ generate(Data, SecData, SessionKey, Key, IVec) ->
                     (size(Hmac)):1/big-signed-integer-unit:16,
                     Hmac/binary>>).
 
-validate(Cookie, SessionKey, Key, IVec) ->
+validate(Cookie, SessionKey, CKey, IVec) ->
     <<DataLen:1/big-signed-integer-unit:16,
       Data:DataLen/binary,
       EncDataLen:1/big-signed-integer-unit:16,
@@ -32,7 +31,6 @@ validate(Cookie, SessionKey, Key, IVec) ->
       HmacLen:1/big-signed-integer-unit:16,
       Hmac:HmacLen/binary>>
         = base64:decode(Cookie),
-    CKey = crypto:md5_mac(Data, Key),
     DecData = crypto:aes_cbc_128_decrypt(CKey, IVec, EncData),
     Mac = crypto:sha_mac([Data, EncData, SessionKey], CKey),
     case {Mac, Hmac} of
