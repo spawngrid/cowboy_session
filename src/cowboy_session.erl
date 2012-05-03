@@ -43,7 +43,7 @@ on_request(Req@, Handler) ->
     Req@#http_req{ meta = [{cowboy_session, Pid}|Req@#http_req.meta]}.
 
 on_response(Req@, Handler) ->
-    Pid = from_req(Req@),
+    {Pid, Req@} = from_req(Req@),
 	CookieName = Handler:cookie_name(),
     HandlerState = cowboy_session_server:handler_state(Pid),
     Options = Handler:cookie_options(HandlerState),
