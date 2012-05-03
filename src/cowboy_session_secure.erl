@@ -35,10 +35,14 @@ validate(Cookie, SessionKey, CKey, IVec) ->
     Mac = crypto:sha_mac([Data, EncData, SessionKey], CKey),
     case {Mac, Hmac} of
         {Value, Value} ->
-            <<ResDataLen:1/big-signed-integer-unit:16, ResData:ResDataLen/binary,
-              ResSecDataLen:1/big-signed-integer-unit:16, ResSecData:ResSecDataLen/binary,
-              _Rest/binary>> = DecData,
-            {ResData, ResSecData};
+            case DecData of
+                <<ResDataLen:1/big-signed-integer-unit:16, ResData:ResDataLen/binary,
+                  ResSecDataLen:1/big-signed-integer-unit:16, ResSecData:ResSecDataLen/binary,
+                  _Rest/binary>> ->
+                    {ResData, ResSecData};
+                _ ->
+                    false
+            end;
         _ ->
             false
     end.
