@@ -33,8 +33,8 @@ validate(Cookie, SessionKey, CKey, IVec) ->
         = base64:decode(Cookie),
     DecData = crypto:aes_cbc_128_decrypt(CKey, IVec, EncData),
     Mac = crypto:sha_mac([Data, EncData, SessionKey], CKey),
-    case {Mac, Hmac} of
-        {Value, Value} ->
+    case secure_compare(Mac, Hmac) of
+        true ->
             case DecData of
                 <<ResDataLen:1/big-signed-integer-unit:16, ResData:ResDataLen/binary,
                   ResSecDataLen:1/big-signed-integer-unit:16, ResSecData:ResSecDataLen/binary,
@@ -43,11 +43,23 @@ validate(Cookie, SessionKey, CKey, IVec) ->
                 _ ->
                     false
             end;
-        _ ->
+        false ->
             false
     end.
               
 %% Internal
+secure_compare(A,B) ->
+    secure_compare(A,B,0).
+
+secure_compare(<<>>,<<>>,0) ->
+    true;
+secure_compare(<<A:1/unit:8,AT/binary>>,
+               <<B:1/unit:8,BT/binary>>,
+               Acc) ->
+    secure_compare(AT,BT, Acc bor (A bxor B));
+secure_compare(_,_,_) ->
+    false.
+
 pad(Width, Binary) ->
     case ((Width - size(Binary) rem Width) rem Width) of
         0 -> Binary;
